@@ -1,0 +1,221 @@
+-- Scripted by ego
+-- Rayfield Loader, Sunflower Incremental
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Sunflower Incremental",
+    Icon = "code", 
+    LoadingTitle = "Ego's Hub",
+    LoadingSubtitle = "by ego",
+    Theme = "Amethyst",
+
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false, 
+
+    ConfigurationSaving = {
+       Enabled = true,
+       FolderName = nil, 
+       FileName = "Egos Hub"
+    },
+
+    Discord = {
+       Enabled = true, 
+       Invite = "2C7V4fabeD",
+       RememberJoins = true 
+    },
+
+    KeySystem = false,
+    KeySettings = {
+       Title = "Untitled",
+       Subtitle = "Key System",
+       Note = "No method of obtaining the key is provided", 
+       FileName = "Key", 
+       SaveKey = true,
+       GrabKeyFromSite = false,
+       Key = {"Hello"}
+    }
+ })
+
+-- Farming Tab ----------------------
+local MainTab = Window:CreateTab("Main", "code") 
+local MainSection = MainTab:CreateSection("Farming")
+ 
+-- Creating the toggle button in the Rayfield UI
+local isActive = false 
+local tweenSpeed = 50 
+
+local sun1Toggle = MainTab:CreateToggle({
+    Name = "Teleport Player to Collectable",
+    CurrentValue = false,
+    Flag = "bringSun1",
+    Callback = function(Value)
+        isActive = Value 
+
+        if isActive then
+            task.spawn(function()
+                while isActive do
+                    local playerRoot = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+                    local targets = {}
+                    local targetYLevel = 146.624  -- Y level for sunflower
+
+                    -- Cache all sunflower positions with Y level check
+                    for _, model in pairs(game.Workspace.Debris:GetChildren()) do
+                        if model:IsA("Model") then
+                            local isSunflower = false
+                            for _, part in pairs(model:GetChildren()) do
+                                if part:IsA("BasePart") and math.abs(part.Position.Y - targetYLevel) < 0.1 then
+                                    isSunflower = true
+                                    break
+                                end
+                            end
+
+                            if isSunflower then
+                                for _, part in pairs(model:GetChildren()) do
+                                    if part:IsA("BasePart") then
+                                        table.insert(targets, part.Position)
+                                    end
+                                end
+                            end
+                        end
+                    end
+
+                    -- Move to each sunflower
+                    for _, targetPosition in ipairs(targets) do
+                        if not isActive then break end 
+
+                        local tweenInfo = TweenInfo.new(
+                            (playerRoot.Position - targetPosition).Magnitude / tweenSpeed, 
+                            Enum.EasingStyle.Linear
+                        )
+                        local tween = game:GetService("TweenService"):Create(
+                            playerRoot,
+                            tweenInfo,
+                            {CFrame = CFrame.new(targetPosition)}
+                        )
+
+                        tween:Play()
+                        tween.Completed:Wait()
+                    end
+
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end,
+})
+
+-- Creating the slider to adjust tween speed
+local tweenSlider = MainTab:CreateSlider({
+    Name = "Tween Speed",
+    Range = {1, 300},  
+    Increment = 1,      
+    Suffix = "mph",   
+    CurrentValue = 50,  
+    Flag = "tweenSpeed1", 
+    Callback = function(Value)
+        tweenSpeed = Value  
+    end
+})
+
+local main1Divider = MainTab:CreateDivider()
+
+-- Auto upgrades 
+-- Making the Dropdown
+
+local selectedUpgrades = {} -- Table to store selected upgrades
+local isActive = false 
+
+local upgradeToggle = MainTab:CreateToggle({
+    Name = "Buy Upgrades",
+    CurrentValue = false,
+    Flag = "upgToggle1",
+    Callback = function(Value)
+        isActive = Value
+
+        if isActive then
+            task.spawn(function()
+                while isActive do
+                    for _, upgrade in ipairs(selectedUpgrades) do
+                        local args = {
+                            [1] = upgrade,  -- Upgrade type (e.g., "Flower", "Speed", "Amount")
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("UpgradeStat"):FireServer(unpack(args))
+                    end
+                    task.wait(0.1)  -- Wait before firing the remotes again
+                end
+            end)
+        end
+    end,
+})
+
+-- Dropdown callback to update selected upgrades
+local upgradesDropdown = MainTab:CreateDropdown({
+    Name = "Upgrades to buy",
+    Options = {"Flower", "Speed", "Amount"},
+    CurrentOption = {"Flower"},  -- Default selected upgrade
+    MultipleOptions = true,
+    Flag = "Dropdown1",
+    Callback = function(Options)
+        selectedUpgrades = Options  -- Update the selected upgrades table
+    end,
+})
+
+local main2Divider = MainTab:CreateDivider()
+
+
+-- Auto Rebirth
+
+local rebirthCooldown = 20  -- Default cooldown time in seconds
+local isRebirthActive = false  -- Variable to track the rebirth loop status
+
+local rebirthToggle = MainTab:CreateToggle({
+    Name = "Rebirth Loop",
+    CurrentValue = false,
+    Flag = "rebirthToggle",
+    Callback = function(Value)
+        isRebirthActive = Value  -- Track toggle state (on/off)
+        
+        if isRebirthActive then
+            -- Start loop for constantly firing the rebirth remote with cooldown
+            task.spawn(function()
+                while isRebirthActive do  -- Check the loop condition based on toggle status
+                    local args = {
+                        [1] = "Rebirth"
+                    }
+                    print("Firing Rebirth remote")  -- Debug print to check if remote is fired
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("UpgradeStat"):FireServer(unpack(args))
+                    task.wait(rebirthCooldown)  -- Wait for the specified cooldown time
+                end
+            end)
+        end
+    end,
+})
+
+-- Slider for cooldown adjustment
+local rebirthSlider = MainTab:CreateSlider({
+    Name = "Rebirth Cooldown",
+    Range = {0.1, 120},
+    Increment = 0.1,
+    Suffix = "Seconds",
+    CurrentValue = 20,
+    Flag = "rebirthSlider1",
+    Callback = function(Value)
+        rebirthCooldown = Value  -- Update the cooldown value when the slider changes
+    end,
+})
+
+
+
+-- Credits
+
+local creditsTab = Window:CreateTab("Credits", "code-xml") 
+local creditsSection = creditsTab:CreateSection("Credits")
+
+local n1Label = creditsTab:CreateLabel("Made and scripted by ego.", "copy-check")
+local n2abel = creditsTab:CreateLabel("Join the discord | .gg/2C7V4fabeD", "copy-plus")
+
+local other2Section = creditsTab:CreateSection("Press K to hide the UI.")
+
+
+-- Scripted by ego
+-- END
