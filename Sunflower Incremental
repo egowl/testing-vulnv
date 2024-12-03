@@ -1,4 +1,22 @@
 -- Scripted by ego
+-- Check for correct game
+
+local correctGameId = 124565796108268  -- The desired game ID
+local currentGameId = game.PlaceId  -- Correct way to get the current game ID
+
+if currentGameId ~= correctGameId then
+    -- Teleport to the correct game ID
+    game:GetService("TeleportService"):Teleport(correctGameId)
+else
+    -- Notify the player they are already in the correct game
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Sunflower Incremental",
+        Text = "You are already in the correct game!",
+        Duration = 5
+    })
+end
+
+
 -- Rayfield Loader, Sunflower Incremental
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
