@@ -232,7 +232,14 @@ local creditsSection = creditsTab:CreateSection("Credits")
 local n1Label = creditsTab:CreateLabel("Made and scripted by ego.", "copy-check")
 local n2abel = creditsTab:CreateLabel("Join the discord | .gg/2C7V4fabeD", "copy-plus")
 
-local other2Section = creditsTab:CreateSection("Press K to hide the UI.")
+local credits2Section = creditsTab:CreateSection("Press K to hide the UI.")
+
+local Button = creditsTab:CreateButton({
+    Name = "Destroy UI",
+    Callback = function()
+       Rayfield:Destroy()
+    end,
+ })
 
 
 -- Scripted by ego
